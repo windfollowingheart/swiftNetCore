@@ -6,3 +6,6 @@
 sudo sh build.sh
 ```
 You can use the cpp source code `testserver.cpp` in the example directory to test this lib.
+
+## Reference
+[muduo](https://github.com/chenshuo/muduo)
