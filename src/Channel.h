@@ -31,18 +31,38 @@ public:
     void setErrorCallback(EventCallback cb) { errorCallback_ = std::move(cb); }
 
     // 防止当channel被手动remove掉, channel还在执行回调操作
-    void tie(const std::shared_ptr<void>&);
+    void tie(const std::shared_ptr<void> &);
 
-    int fd() const { return fd_;}
+    int fd() const { return fd_; }
     int events() const { return events_; }
-    int set_revents(int revt) { revents_ = revt; }
+    void set_revents(int revt) { revents_ = revt; }
 
     // 设置fd相应的事件状态
-    void enableReading() { events_ |= kReadEvent; update(); }
-    void disableReading() { events_ &= ~kReadEvent; update(); }
-    void enableWriting() { events_ |= kWriteEvent; update(); }
-    void disableWriting() { events_ &= ~kWriteEvent; update(); }
-    void disableAll() { events_ = kNoneEvent; update(); }
+    void enableReading()
+    {
+        events_ |= kReadEvent;
+        update();
+    }
+    void disableReading()
+    {
+        events_ &= ~kReadEvent;
+        update();
+    }
+    void enableWriting()
+    {
+        events_ |= kWriteEvent;
+        update();
+    }
+    void disableWriting()
+    {
+        events_ &= ~kWriteEvent;
+        update();
+    }
+    void disableAll()
+    {
+        events_ = kNoneEvent;
+        update();
+    }
 
     // 返回fd当前的事件状态
     bool isNoneEvent() const { return events_ == kNoneEvent; }
@@ -52,12 +72,10 @@ public:
     int index() { return index_; }
     void set_index(int idx) { index_ = idx; }
 
-    EventLoop* ownerLoop() { return loop_; }
+    EventLoop *ownerLoop() { return loop_; }
     void remove();
 
-
 private:
-
     void update();
     void handleEventWithGuard(Timestamp receiveTime);
 
@@ -66,10 +84,10 @@ private:
     static const int kWriteEvent;
 
     EventLoop *loop_; // 事件循环
-    const int fd_; // fd, Poller监听的对象
-    int events_; // 注册fd感兴趣的事件
-    int revents_; // poller返回的具体发生的事件
-    int index_; 
+    const int fd_;    // fd, Poller监听的对象
+    int events_;      // 注册fd感兴趣的事件
+    int revents_;     // poller返回的具体发生的事件
+    int index_;
 
     std::weak_ptr<void> tie_;
     bool tied_;

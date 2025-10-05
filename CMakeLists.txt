@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.5)
+cmake_minimum_required(VERSION 3.5)
 project(swiftNetCore)
 
 # mymuduo 最终编译为so动态库，设置动态库的路径。

@@ -3,6 +3,9 @@
 #include "noncopyable.h"
 #include "Timestamp.h"
 #include "CurrentThread.h"
+#include "TimerId.h"
+#include "TimerQueue.h"
+#include "Callback.h"
 
 #include <functional>
 #include <vector>
@@ -33,6 +36,10 @@ public:
     void runInLoop(Functor cb);
     // 把cb放入队列中，唤醒loop所在的线程，执行cb
     void queueInLoop(Functor cb);
+
+    TimerId runAt(Timestamp time, TimerCallback cb);
+
+    TimerId runAfter(double delay, TimerCallback cb);
 
     // 用来唤醒loop所在的线程
     void wakeup();
@@ -65,4 +72,5 @@ private:
     std::atomic_bool callingPendingFunctors_; // 标识当前loop是否有需要执行的回调操作
     std::vector<Functor> pendingFunctors_;    // 存储loop需要执行的所有回调操作
     std::mutex mutex_;                        // 互斥锁，用来保护上面vector容器的线程安全操作
+    std::unique_ptr<TimerQueue> timerQueue_;
 };
