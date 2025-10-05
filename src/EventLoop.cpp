@@ -158,7 +158,7 @@ void EventLoop::removeChannel(Channel *channel)
 }
 bool EventLoop::hasChannel(Channel *channel)
 {
-    poller_->hasChannel(channel);
+    return poller_->hasChannel(channel);
 }
 
 void EventLoop::doPendingFunctors()
@@ -175,4 +175,15 @@ void EventLoop::doPendingFunctors()
         functor(); // 执行当前loop需要执行的回调操作
     }
     callingPendingFunctors_ = false;
+}
+
+TimerId EventLoop::runAt(Timestamp time, TimerCallback cb)
+{
+    return timerQueue_->addTimer(std::move(cb), time, 0.0);
+}
+
+TimerId EventLoop::runAfter(double delay, TimerCallback cb)
+{
+    Timestamp time(addTime(Timestamp::now(), delay));
+    return runAt(time, std::move(cb));
 }

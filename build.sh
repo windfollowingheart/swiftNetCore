@@ -2,14 +2,17 @@
 
 set -e
 
-if [ ! -d `pwd`/build ]; then
-    mkdir `pwd`/build
+SOURCE_DIR=.
+echo $SOURCE_DIR
+
+if [ ! -d $SOURCE_DIR/build ]; then
+    mkdir ./build
 fi
 
-rm -rf `pwd`/build/*
-rm -rf `pwd`/lib/*
+rm -rf $SOURCE_DIR/build/*
+rm -rf $SOURCE_DIR/lib/*
 
-cd `pwd`/build &&
+cd $SOURCE_DIR/build &&
     cmake .. &&
     make
 
@@ -26,6 +29,6 @@ do
     cp $header /usr/include/swiftNetCore
 done
 
-cp `pwd`/lib/libswiftNetCore.so /usr/lib
+cp $SOURCE_DIR/lib/libswiftNetCore.so /usr/lib
 
 # ldconfig
