@@ -18,11 +18,23 @@ namespace detail
 
 HttpClient::HttpClient(EventLoop *loop,
                        const InetAddress &serverAddr,
-                       const std::string &name)
+                       const std::string &name,
+                       bool useThreadPool,
+                       int maxThreadPoolSize,
+                       int maxTaskCount)
     : client_(loop, serverAddr, name),
       httpResponseCallback_(detail::defaultHttpCallback),
-      connected_(false), isConnecting_(false)
+      connected_(false), isConnecting_(false),
+      useThreadPool_(useThreadPool),
+      maxThreadPoolSize_(maxThreadPoolSize),
+      maxTaskCount_(maxTaskCount)
 {
+    if (useThreadPool_)
+    {
+        threadPool_.setMaxThreads(maxThreadPoolSize_);
+        threadPool_.setMaxTasks(maxTaskCount_);
+    }
+
     // 设置连接回调
     client_.setConnectionCallback(
         std::bind(&HttpClient::onConnection, this, std::placeholders::_1));
@@ -68,7 +80,7 @@ void HttpClient::get(const std::string &path)
     }
     if (!connected_)
     {
-        LOG_WARN("HttpClient::get - 添加到请求队列");
+        // LOG_WARN("HttpClient::get - 添加到请求队列");
         requests_.push(request);
     }
     else
@@ -99,12 +111,12 @@ void HttpClient::post(const std::string &path,
     }
     if (!connected_)
     {
-        LOG_WARN("HttpClient::post - 添加到请求队列");
+        // LOG_WARN("HttpClient::post - 添加到请求队列");
         requests_.push(request);
     }
     else
     {
-        LOG_WARN("HttpClient::post - 直接发送");
+        // LOG_WARN("HttpClient::post - 直接发送");
         sendRequest(request, httpResponseCallback_);
     }
 }
@@ -166,10 +178,10 @@ void HttpClient::onConnection(const TcpConnectionPtr &conn)
         // 发送请求
         std::lock_guard<std::mutex> lock(mutex_);
         connected_ = true;
-        LOG_WARN("HttpClient::onConnection - 发送请求数量 %d", requests_.size());
+        // LOG_WARN("HttpClient::onConnection - 发送请求数量 %d", requests_.size());
         if (!requests_.empty())
         {
-            LOG_WARN("HttpClient::onConnection - 发送请求");
+            // LOG_WARN("HttpClient::onConnection - 发送请求");
             sendRequest(requests_.front(), httpResponseCallback_);
             requests_.pop();
             // 等待10ms
@@ -191,9 +203,9 @@ void HttpClient::onMessage(const TcpConnectionPtr &conn, Buffer *buffer, Timesta
     std::lock_guard<std::mutex> lock(mutex_);
     if (!requests_.empty())
     {
-        // 发送下一个请求
-        sendRequest(requests_.front(), httpResponseCallback_);
+        HttpRequest req = requests_.front();
         requests_.pop();
+        sendRequest(req, httpResponseCallback_);
     }
 }
 
@@ -212,8 +224,20 @@ void HttpClient::handleResponse(const TcpConnectionPtr &conn, Buffer *buffer, Ti
                 // 注意：由于当前HttpContext的设计限制，我们无法直接获取HttpResponse对象
                 // 这里需要创建一个临时的HttpResponse对象
                 HttpResponse response = context->response(); // 假设连接关闭
+                HttpResponse resp = response;
                 // 实际应用中应该从context中提取响应信息设置到response对象中
-                httpResponseCallback_(response);
+                // 是否使用线程池
+                if (useThreadPool_)
+                {
+                    threadPool_.submit(
+                        std::bind(httpResponseCallback_, resp));
+                    // LOG_WARN("线程池线程数量 %d, 任务数量 %d", threadPool_.threadsNum(), threadPool_.tasksNum());
+                }
+                else
+                {
+                    httpResponseCallback_(response);
+                }
+                // httpResponseCallback_(response);
             }
 
             // 重置上下文以准备下一次解析

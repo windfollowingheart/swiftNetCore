@@ -146,4 +146,6 @@ private:
 
     std::string current_buffer_;
     std::queue<std::string> buffers_to_write_;
+
+    bool outCmd_ = false;
 };

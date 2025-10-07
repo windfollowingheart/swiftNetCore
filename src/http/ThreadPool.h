@@ -64,6 +64,24 @@ public:
         }
     }
 
+    void setMaxThreads(size_t maxThreads)
+    {
+        MutexGuard guard(mutex_);
+        maxThreads_ = maxThreads;
+    }
+
+    void setMaxTasks(size_t maxTasks)
+    {
+        MutexGuard guard(mutex_);
+        maxTasks_ = maxTasks;
+    }
+
+    size_t maxTasksNum() const
+    {
+        MutexGuard guard(mutex_);
+        return maxTasks_;
+    }
+
     template <typename Func, typename... Ts>
     auto submit(Func &&func, Ts &&...params)
         -> std::future<typename std::result_of<Func(Ts...)>::type>

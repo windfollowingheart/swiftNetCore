@@ -12,7 +12,10 @@ bool benchmark = false;
 
 void onRequest(const HttpRequest &req, HttpResponse *resp)
 {
-  std::cout << "Headers " << req.methodString() << " " << req.path() << std::endl;
+  // std::cout << "Headers " << req.methodString() << " " << req.path() << std::endl;
+  char *path = const_cast<char *>(req.path().c_str());
+  char *method = const_cast<char *>(req.methodString());
+  // LOG_WARN("Headers %s %s", method, path);
   // if (!benchmark)
   // {
   //   const std::map<string, string> &headers = req.headers();
