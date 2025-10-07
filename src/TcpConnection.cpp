@@ -157,6 +157,28 @@ void TcpConnection::send(std::string &buf)
     }
 }
 
+void TcpConnection::send(Buffer *buf)
+{
+    if (state_ == kConnected)
+    {
+        if (loop_->isInLoopThread())
+        {
+            sendInLoop(buf->peek(), buf->readableBytes());
+            buf->retrieveAll();
+        }
+        else
+        {
+            void (TcpConnection::*fp)(const void *message, size_t len) = &TcpConnection::sendInLoop;
+            loop_->runInLoop(
+                std::bind(fp,
+                          this, // FIXME
+                          buf->peek(),
+                          buf->readableBytes()));
+            // std::forward<string>(message)));
+        }
+    }
+}
+
 // 发送数据, 应用写的快而内核发送慢，需要把发送数据写入缓冲区，且需要设置水位
 void TcpConnection::sendInLoop(const void *data, size_t len)
 {

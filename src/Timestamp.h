@@ -10,6 +10,7 @@ public:
     explicit Timestamp(int64_t microSecondsSinceEpoch);
     static Timestamp now();
     std::string toString() const;
+    std::string toFormattedString(bool showMicroseconds = true) const;
     static const int kMicroSecondsPerSecond = 1000 * 1000;
 
     int64_t microSecondsSinceEpoch() const { return microSecondsSinceEpoch_; }
@@ -28,6 +29,11 @@ public:
     bool operator==(Timestamp rhs) const
     {
         return microSecondsSinceEpoch_ == rhs.microSecondsSinceEpoch_;
+    }
+
+    void swap(Timestamp &that)
+    {
+        std::swap(microSecondsSinceEpoch_, that.microSecondsSinceEpoch_);
     }
 
 private:

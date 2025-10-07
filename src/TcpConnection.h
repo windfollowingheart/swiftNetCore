@@ -10,6 +10,8 @@
 #include <string>
 #include <atomic>
 
+#include <boost/any.hpp>
+
 class Channel;
 class EventLoop;
 class Socket;
@@ -26,13 +28,11 @@ public:
     ~TcpConnection();
 
     EventLoop *getLoop() const { return loop_; }
-    const std::string& name() const { return name_; }
-    const InetAddress& localAddress() const { return localAddr_; }
-    const InetAddress& peerAddress() const { return peerAddr_; }
+    const std::string &name() const { return name_; }
+    const InetAddress &localAddress() const { return localAddr_; }
+    const InetAddress &peerAddress() const { return peerAddr_; }
 
     bool connected() const { return state_ == kConnected; }
-
-    
 
     void setConnectionCallback(const ConnectionCallback &cb)
     {
@@ -74,10 +74,25 @@ public:
     void connectDestroyed();
 
     void send(std::string &buf);
+    void send(Buffer *buf);
     void shutdown();
     void sendInLoop(const void *message, size_t len);
     void shutdownInLoop();
 
+    void setContext(const boost::any &context)
+    {
+        context_ = context;
+    }
+
+    const boost::any &getContext() const
+    {
+        return context_;
+    }
+
+    boost::any *getMutableContext()
+    {
+        return &context_;
+    }
 
 private:
     enum StateE
@@ -95,8 +110,6 @@ private:
 
     void setState(StateE state) { state_ = state; }
 
-    
-
     EventLoop *loop_; // 这里绝对不是baseLoop, 因为TcpConnection都是在subloop里面管理的
     const std::string name_;
     StateE state_;
@@ -113,6 +126,8 @@ private:
     CloseCallback closeCallback_;
 
     size_t highWaterMark_;
-    Buffer inputBuffer_; // 接收数据缓冲区
+    Buffer inputBuffer_;  // 接收数据缓冲区
     Buffer outputBuffer_; // 发送数据缓冲区
+
+    boost::any context_;
 };

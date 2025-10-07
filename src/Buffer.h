@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <cstring>
 
 // 网络库底层的缓冲区类型定义
 class Buffer
@@ -17,6 +18,15 @@ public:
           writeIndex_(kCheapPrepend)
     {
     }
+
+    Buffer(const Buffer &other)
+        : buffer_(other.buffer_),
+          readerIndex_(other.readerIndex_),
+          writeIndex_(other.writeIndex_)
+    {
+    }
+
+    std::vector<char> &buffer() { return buffer_; }
 
     size_t readableBytes() const { return writeIndex_ - readerIndex_; }
 
@@ -65,6 +75,16 @@ public:
         }
     }
 
+    void append(const char *str)
+    {
+        append(str, strlen(str));
+    }
+
+    void append(const std::string &str)
+    {
+        append(str.data(), str.size());
+    }
+
     // 把[data, data+len]内存的数据添加到writeable缓冲区中
     void append(const char *data, size_t len)
     {
@@ -87,6 +107,37 @@ public:
     ssize_t readFd(int fd, int *saveErrno);
     // 通过fd发送数据
     ssize_t writeFd(int fd, int *saveErrno);
+
+    const char *findCRLF() const
+    {
+        // FIXME: replace with memmem()?
+        const char *crlf = std::search(peek(), beginWrite(), kCRLF, kCRLF + 2);
+        return crlf == beginWrite() ? NULL : crlf;
+    }
+
+    const char *findCRLF(const char *start) const
+    {
+        // FIXME: replace with memmem()?
+        const char *crlf = std::search(start, beginWrite(), kCRLF, kCRLF + 2);
+        return crlf == beginWrite() ? NULL : crlf;
+    }
+
+    const char *findEOL() const
+    {
+        const void *eol = memchr(peek(), '\n', readableBytes());
+        return static_cast<const char *>(eol);
+    }
+
+    const char *findEOL(const char *start) const
+    {
+        const void *eol = memchr(start, '\n', beginWrite() - start);
+        return static_cast<const char *>(eol);
+    }
+
+    void retrieveUntil(const char *end)
+    {
+        retrieve(end - peek());
+    }
 
 private:
     char *begin()
@@ -120,4 +171,5 @@ private:
     std::vector<char> buffer_;
     size_t readerIndex_;
     size_t writeIndex_;
+    static const char kCRLF[];
 };
