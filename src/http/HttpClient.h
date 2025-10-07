@@ -1,6 +1,7 @@
 #pragma
 
 #include "../TcpClient.h"
+#include "ThreadPool.h"
 
 #include <queue>
 
@@ -19,7 +20,10 @@ public:
 
     HttpClient(EventLoop *loop,
                const InetAddress &listenAddr,
-               const std::string &name);
+               const std::string &name,
+               bool useThreadPool = false,
+               int maxThreadPoolSize = 0,
+               int maxTaskCount = -1);
 
     EventLoop *getLoop() const { return client_.getLoop(); }
 
@@ -48,6 +52,11 @@ public:
 
     void handleResponse(const TcpConnectionPtr &conn, Buffer *buffer, Timestamp receiveTime);
 
+    ThreadPool &getThreadPool()
+    {
+        return threadPool_;
+    }
+
 private:
     void onConnection(const TcpConnectionPtr &conn);
     void onMessage(const TcpConnectionPtr &conn,
@@ -61,4 +70,8 @@ private:
     // std::vector<HttpRequest> requests_;
     std::queue<HttpRequest> requests_;
     std::mutex mutex_;
+    bool useThreadPool_;
+    int maxThreadPoolSize_;
+    int maxTaskCount_;
+    ThreadPool threadPool_;
 };
