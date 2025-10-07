@@ -9,5 +9,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11 -fPIC")
 
 # 定义参与编译的源文件
 aux_source_directory(./src SRC_LIST)
+aux_source_directory(./src/http SRC_HTTP_LIST)
 #编译动态库
-add_library(swiftNetCore SHARED ${SRC_LIST})
+add_library(swiftNetCore SHARED ${SRC_LIST} ${SRC_HTTP_LIST})

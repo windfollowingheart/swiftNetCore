@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * 
+ *
  */
 #include "EventLoop.h"
 #include "Acceptor.h"
@@ -11,8 +11,6 @@
 #include "Callback.h"
 #include "TcpConnection.h"
 #include "Buffer.h"
-
-
 
 #include <functional>
 #include <string>
@@ -24,7 +22,7 @@
 class TcpServer : noncopyable
 {
 public:
-    using ThreadInitCallback = std::function<void(EventLoop*)>;
+    using ThreadInitCallback = std::function<void(EventLoop *)>;
 
     enum Option
     {
@@ -33,9 +31,9 @@ public:
     };
 
     TcpServer(EventLoop *loop,
-        const InetAddress &listenAddr,
-        const std::string &nameArg,
-        Option option = kNoReusePort);
+              const InetAddress &listenAddr,
+              const std::string &nameArg,
+              Option option = kNoReusePort);
     ~TcpServer();
 
     void setThreadInitCallback(const ThreadInitCallback &cb) { threadInitCallback_ = cb; }
@@ -48,6 +46,12 @@ public:
 
     // 开启服务器监听
     void start();
+
+    EventLoop *getLoop() const { return loop_; }
+
+    const std::string &ipPort() const { return ipPort_; }
+    const std::string &name() const { return name_; }
+
 private:
     void newConnection(int sockfd, const InetAddress &peerAddr);
     void removeConnection(const TcpConnectionPtr &conn);
@@ -61,8 +65,8 @@ private:
     std::unique_ptr<Acceptor> acceptor_; // 运行在mainloop, 任务就是监听新连接事件
     std::shared_ptr<EventLoopThreadPool> threadPool_;
 
-    ConnectionCallback connectionCallback_; // 有新连接时的回调
-    MessageCallback messaegCallback_; // 有读写消息时的回调
+    ConnectionCallback connectionCallback_;       // 有新连接时的回调
+    MessageCallback messaegCallback_;             // 有读写消息时的回调
     WriteCompleteCallback writeCompleteCallback_; // 消息发送完成以后的回调
 
     ThreadInitCallback threadInitCallback_; // loop线程初始化的回调
@@ -71,5 +75,4 @@ private:
 
     int nextConnId_;
     ConnectionMap connections_; // 保存所有的连接
-
 };

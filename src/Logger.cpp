@@ -19,16 +19,39 @@ void Logger::log(std::string msg)
     switch (logLevel_)
     {
     case INFO:
-        std::cout << "[INFO]";
+        if (minLogLevel_ <= INFO)
+        {
+            // std::cout << "[INFO]" << minLogLevel_;
+            msg = Timestamp::now().toString() + " [INFO]: " + msg;
+        }
         break;
     case ERROR:
-        std::cout << "[ERROR]";
+        if (minLogLevel_ <= ERROR)
+        {
+            // std::cout << "[ERROR]";
+            msg = Timestamp::now().toString() + " [ERROR]: " + msg;
+        }
         break;
     case FATAL:
-        std::cout << "[FATAL]";
+        if (minLogLevel_ <= FATAL)
+        {
+            // std::cout << "[FATAL]";
+            msg = Timestamp::now().toString() + " [FATAL]: " + msg;
+        }
         break;
     case DEBUG:
-        std::cout << "[DEBUG]";
+        if (minLogLevel_ <= DEBUG)
+        {
+            // std::cout << "[DEBUG]" << minLogLevel_;
+            msg = Timestamp::now().toString() + " [DEBUG]: " + msg;
+        }
+        break;
+    case WARN:
+        if (minLogLevel_ <= WARN)
+        {
+            // std::cout << "[WARN]";
+            msg = Timestamp::now().toString() + " [WARN]: " + msg;
+        }
         break;
 
     default:
@@ -36,5 +59,16 @@ void Logger::log(std::string msg)
     }
 
     // 打印时间和msg
-    std::cout << Timestamp::now().toString() << " : " << msg << std::endl;
+    if (minLogLevel_ <= logLevel_)
+    {
+        // std::cout < < < < " : " << msg << std::endl;
+        if (enableAsync_)
+        {
+            asyncLogger_->log(msg);
+        }
+        else
+        {
+            std::cout << msg << std::endl;
+        }
+    }
 };

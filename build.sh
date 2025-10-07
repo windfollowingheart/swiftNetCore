@@ -26,9 +26,14 @@ fi
 
 for header in `ls ./src/*.h`
 do
-    cp $header /usr/include/swiftNetCore
+    sudo cp $header /usr/include/swiftNetCore
 done
 
-cp $SOURCE_DIR/lib/libswiftNetCore.so /usr/lib
+for header in `ls ./src/http/*.h`
+do
+    sudo cp $header /usr/include/swiftNetCore/http
+done
+
+sudo cp $SOURCE_DIR/lib/libswiftNetCore.so /usr/lib
 
 # ldconfig
